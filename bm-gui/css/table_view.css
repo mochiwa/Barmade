@@ -1,0 +1,59 @@
+QFrame#frame
+{
+    color:red;
+}
+
+
+QFrame#frame_button QPushButton
+{
+    padding-left:10px;
+    padding-right:10px;
+    border:none;
+    font: 20pt 'Open Sans';
+    font-weight:bold;
+    color:#fcfff7;
+    background-color: #21a0a0;
+}
+
+QFrame#frame_button QPushButton:hover{background-color:  rgba(33, 160, 160,200);}
+QFrame#frame_button QPushButton:pressed{background-color: #045f5c;}
+QFrame#frame_button QPushButton:!enabled{background-color:#e0e0e0;}
+
+QFrame#frame_2
+{
+    background-color: rgb(255, 255, 255);
+}
+
+QHeaderView
+{
+    padding:0px;
+    font: 14pt 'Open Sans';
+    font-weight:bold;
+    color:#fcfff7;
+    background-color: #21a0a0;
+}
+
+QHeaderView::section
+{
+    background-color: #21a0a0;
+    border:none;
+    padding-top:0px;
+    padding-bottom:0px;
+    border-left:1px solid #ecf0f1;
+    padding-bottom:8px;
+}
+QHeaderView::section:first
+{
+    border:none;
+
+}
+QHeaderView::section:last
+{
+     border-right:1px solid #ecf0f1;
+}
+QTableView
+{
+
+}
+
+

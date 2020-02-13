@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EmployeeWidget</class>
+ <widget class="QWidget" name="EmployeeWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>821</width>
+    <height>543</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame">
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_picture">
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../../ressources.qrc">:/images/undefinedUser_icon.png</pixmap>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_code">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>#0000</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::NoTextInteraction</set>
+        </property>
+        <property name="buddy">
+         <cstring>widget_address</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_name">
+        <property name="text">
+         <string>Name:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="line_name">
+        <property name="inputMask">
+         <string/>
+        </property>
+        <property name="maxLength">
+         <number>50</number>
+        </property>
+        <property name="frame">
+         <bool>false</bool>
+        </property>
+        <property name="cursorPosition">
+         <number>0</number>
+        </property>
+        <property name="readOnly">
+         <bool>false</bool>
+        </property>
+        <property name="placeholderText">
+         <string>Your name</string>
+        </property>
+        <property name="clearButtonEnabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_forename">
+        <property name="text">
+         <string>Forename: </string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="line_forename">
+        <property name="maxLength">
+         <number>50</number>
+        </property>
+        <property name="frame">
+         <bool>false</bool>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="placeholderText">
+         <string>Your forname</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_birthday">
+        <property name="text">
+         <string>Birthday:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QDateEdit" name="line_birthday">
+        <property name="wrapping">
+         <bool>false</bool>
+        </property>
+        <property name="frame">
+         <bool>false</bool>
+        </property>
+        <property name="readOnly">
+         <bool>false</bool>
+        </property>
+        <property name="buttonSymbols">
+         <enum>QAbstractSpinBox::NoButtons</enum>
+        </property>
+        <property name="keyboardTracking">
+         <bool>false</bool>
+        </property>
+        <property name="currentSection">
+         <enum>QDateTimeEdit::DaySection</enum>
+        </property>
+        <property name="displayFormat">
+         <string>dd/MM/yyyy</string>
+        </property>
+        <property name="calendarPopup">
+         <bool>true</bool>
+        </property>
+        <property name="timeSpec">
+         <enum>Qt::LocalTime</enum>
+        </property>
+        <property name="date">
+         <date>
+          <year>2000</year>
+          <month>1</month>
+          <day>1</day>
+         </date>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_address">
+        <property name="text">
+         <string>Address :</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QWidget" name="widget_address" native="true">
+        <layout class="QGridLayout" name="layout_address">
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>10</number>
+         </property>
+         <property name="rightMargin">
+          <number>20</number>
+         </property>
+         <property name="bottomMargin">
+          <number>10</number>
+         </property>
+         <property name="spacing">
+          <number>10</number>
+         </property>
+         <item row="0" column="3">
+          <widget class="QLineEdit" name="line_number">
+           <property name="maxLength">
+            <number>50</number>
+           </property>
+           <property name="frame">
+            <bool>false</bool>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>Home number</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_number">
+           <property name="text">
+            <string>N°;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_cp">
+           <property name="text">
+            <string>cp:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="line_city">
+           <property name="maxLength">
+            <number>50</number>
+           </property>
+           <property name="frame">
+            <bool>false</bool>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>Your city</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QLineEdit" name="line_cp">
+           <property name="maxLength">
+            <number>50</number>
+           </property>
+           <property name="frame">
+            <bool>false</bool>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>City postal code</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="line_street">
+           <property name="maxLength">
+            <number>50</number>
+           </property>
+           <property name="frame">
+            <bool>false</bool>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>Your street</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_street">
+           <property name="text">
+            <string>Street:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_city">
+           <property name="text">
+            <string>City:</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_phone">
+        <property name="text">
+         <string>phone:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QLineEdit" name="line_phone">
+        <property name="inputMask">
+         <string>9999.99.99.99</string>
+        </property>
+        <property name="maxLength">
+         <number>13</number>
+        </property>
+        <property name="frame">
+         <bool>false</bool>
+        </property>
+        <property name="readOnly">
+         <bool>false</bool>
+        </property>
+        <property name="placeholderText">
+         <string>Your phone number</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QDoubleSpinBox" name="line_salary">
+        <property name="frame">
+         <bool>false</bool>
+        </property>
+        <property name="buttonSymbols">
+         <enum>QAbstractSpinBox::PlusMinus</enum>
+        </property>
+        <property name="showGroupSeparator" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="suffix">
+         <string>$</string>
+        </property>
+        <property name="maximum">
+         <double>1000000.989999999990687</double>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="label_salary">
+        <property name="text">
+         <string>Salary:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_rank">
+        <property name="text">
+         <string>Rank :</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="comboBox_rank">
+        <property name="editable">
+         <bool>false</bool>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::NoInsert</enum>
+        </property>
+        <property name="frame">
+         <bool>false</bool>
+        </property>
+        <item>
+         <property name="text">
+          <string>WAITER</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>BARMAN</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>MANAGER</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>comboBox_rank</tabstop>
+  <tabstop>line_name</tabstop>
+  <tabstop>line_forename</tabstop>
+  <tabstop>line_birthday</tabstop>
+  <tabstop>line_street</tabstop>
+  <tabstop>line_number</tabstop>
+  <tabstop>line_city</tabstop>
+  <tabstop>line_cp</tabstop>
+  <tabstop>line_phone</tabstop>
+  <tabstop>line_salary</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../ressources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

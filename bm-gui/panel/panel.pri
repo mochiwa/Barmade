@@ -1,0 +1,8 @@
+include(employee_panel/employee_panel.pri)
+include(planning_panel/planning_panel.pri)
+include(supplier_panel/supplier_panel.pri)
+include(information_panel/information_panel.pri)
+include(ProductManagementPanel/productmanagement_panel.pri)
+include(product_panel/product_panel.pri)
+include(invoice_panel/invoice_panel.pri)
+include(stock_panel/stock_panel.pri)

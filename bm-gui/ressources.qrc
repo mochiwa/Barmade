@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/tab_icon/users_icon.png</file>
+        <file>images/undefinedUser_icon.png</file>
+        <file>images/app_icon.png</file>
+        <file>images/tab_icon/suppliers.png</file>
+        <file>css/login_dialog.css</file>
+        <file>fonts/OpenSans-Regular.ttf</file>
+        <file>images/logo_flat.png</file>
+        <file>css/button.css</file>
+        <file>css/style.css</file>
+        <file>css/list_control.css</file>
+        <file>css/entity_widget.css</file>
+        <file>css/information_panel.css</file>
+        <file>css/employee_form.css</file>
+        <file>css/list_invoice.css</file>
+        <file>css/table_view.css</file>
+    </qresource>
+</RCC>

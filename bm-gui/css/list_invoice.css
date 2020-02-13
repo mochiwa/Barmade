@@ -1,0 +1,79 @@
+
+QFrame
+{
+    border-top-left-radius:10px;
+    border-top-right-radius:10px;
+    background-color:white;
+}
+
+QFrame#frame_title QLabel
+{
+    font: 24pt 'Open Sans';
+    font-weight:bold;
+    border-bottom:3px solid rgb(33, 160, 160);
+}
+
+QFrame#frame_total QLabel,
+QFrame#frame_total QDoubleSpinBox
+{
+    font: 14pt 'Open Sans';
+    font-weight:bold;
+}
+
+QFrame#frame_search
+{
+    border:none;
+    border-radius:0px;
+    color:rgb(252, 255, 247);
+}
+
+QFrame#frame_search QLabel
+{
+    background-color:none;
+    color:black;
+    border-bottom:3px solid rgb(33, 160, 160);
+    margin-right:0px;
+
+}
+QFrame#frame_search QDateEdit
+{
+    background-color:none;
+    border-bottom: 3px solid rgb(33, 160, 160);
+    color:black;
+    padding-left:5px;
+    margin-left:0px;
+
+}
+
+QFrame:!enabled{
+    background-color:#e3e3e3;
+}
+
+
+
+QListView
+{
+    background-color:white;
+    padding-top: 5px;
+
+    font: 12pt 'Open Sans';
+    selection-color : black;
+    color:black;
+    border-radius:0px;
+}
+QListView::item
+{
+    padding: 10px;
+    border-bottom:2px solid #ecf0f1;
+}
+QListView::item:selected
+{
+    background-color:#ecf0f1;
+}
+QListView::item:hover
+{
+    background-color:#ecf0f1;
+    border-bottom:1px solid white;
+}
+
+

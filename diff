@@ -1,0 +1,1943 @@
+diff --git a/qt/Barmade/bm-gui/bm-gui b/qt/Barmade/bm-gui/bm-gui
+index 773362d..c532424 100755
+Binary files a/qt/Barmade/bm-gui/bm-gui and b/qt/Barmade/bm-gui/bm-gui differ
+diff --git a/qt/Barmade/bm-gui/components/entitywidget.cpp b/qt/Barmade/bm-gui/components/entitywidget.cpp
+index 096ea32..2dc8f6f 100644
+--- a/qt/Barmade/bm-gui/components/entitywidget.cpp
++++ b/qt/Barmade/bm-gui/components/entitywidget.cpp
+@@ -13,7 +13,7 @@ EntityWidget::EntityWidget(QWidget *parent):
+ 
+ EntityWidget::~EntityWidget()
+ {
+-    delete ui;
++   delete ui;
+ }
+ 
+ //------------- SLOTS -------------//
+diff --git a/qt/Barmade/bm-gui/dialogs/dialogs.pri b/qt/Barmade/bm-gui/dialogs/dialogs.pri
+index 0390df6..9f1ddd5 100644
+--- a/qt/Barmade/bm-gui/dialogs/dialogs.pri
++++ b/qt/Barmade/bm-gui/dialogs/dialogs.pri
+@@ -1,12 +1,15 @@
+ FORMS += \
+     $$PWD/dayselector.ui \
+-    $$PWD/login_dialog.ui
++    $$PWD/login_dialog.ui \
++    $$PWD/searchdialog.ui
+ 
+ HEADERS += \
+     $$PWD/dayselector_dialog.h \
+-    $$PWD/login_dialog.h
++    $$PWD/login_dialog.h \
++    $$PWD/searchdialog.h
+ 
+ SOURCES += \
+     $$PWD/dayselector_dialog.cpp \
+-    $$PWD/login_dialog.cpp
++    $$PWD/login_dialog.cpp \
++    $$PWD/searchdialog.cpp
+ 
+diff --git a/qt/Barmade/bm-gui/dialogs/login_dialog.cpp b/qt/Barmade/bm-gui/dialogs/login_dialog.cpp
+index 806af80..c32cb1b 100644
+--- a/qt/Barmade/bm-gui/dialogs/login_dialog.cpp
++++ b/qt/Barmade/bm-gui/dialogs/login_dialog.cpp
+@@ -34,7 +34,7 @@ void LoginDialog::showErrorMessage(const bool value)
+ 
+ void LoginDialog::on_button_login_clicked()
+ {
+-    employee=DatabaseManager::getInstance().employeeDao->getEmployeeByCode(ui->lineEdit_id->text());
++    employee=DatabaseManager::getInstance().employeeDao->getEmployeeByCode("1");
+     if(employee.getId()==-1)
+     {
+         showErrorMessage(true);
+diff --git a/qt/Barmade/bm-gui/dialogs/login_dialog.ui b/qt/Barmade/bm-gui/dialogs/login_dialog.ui
+index 98d900f..6fb383d 100644
+--- a/qt/Barmade/bm-gui/dialogs/login_dialog.ui
++++ b/qt/Barmade/bm-gui/dialogs/login_dialog.ui
+@@ -115,7 +115,7 @@
+             </font>
+            </property>
+            <property name="focusPolicy">
+-            <enum>Qt::ClickFocus</enum>
++            <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+diff --git a/qt/Barmade/bm-gui/dialogs/searchdialog.cpp b/qt/Barmade/bm-gui/dialogs/searchdialog.cpp
+new file mode 100644
+index 0000000..8530ec5
+--- /dev/null
++++ b/qt/Barmade/bm-gui/dialogs/searchdialog.cpp
+@@ -0,0 +1,74 @@
++#include "searchdialog.h"
++#include "ui_searchdialog.h"
++
++/**
++ * changer la recherche !
++ */
++SearchDialog::SearchDialog(QAbstractItemModel *model,QWidget *parent) :
++    QDialog(parent),
++    ui(new Ui::SearchDialog)
++{
++    ui->setupUi(this);
++    initProxyModel(model);
++
++    connect(ui->button_valid,SIGNAL(clicked()),this,SLOT(on_valid()));
++    connect(ui->button_cancel,SIGNAL(clicked()),this,SLOT(on_cancel()));
++    connect(ui->line_search,SIGNAL(textChanged(const QString&)),this,SLOT(on_search(const QString&)));
++}
++
++
++
++SearchDialog::~SearchDialog()
++{
++    delete ui;
++}
++void SearchDialog::on_valid()
++{
++    done(1);
++}
++void SearchDialog::on_cancel()
++{
++    reject();
++}
++
++void SearchDialog::on_search(const QString &input)
++{
++    QRegExp exp(QRegExp(input,Qt::CaseInsensitive,QRegExp::FixedString));
++    proxyModel->setFilterRegExp(exp);
++    enableValidateButton();
++}
++
++
++QItemSelectionModel* SearchDialog::getSelectionModel()
++{
++    return ui->listView->selectionModel();
++}
++
++
++
++void SearchDialog::initProxyModel(QAbstractItemModel *model)
++{
++    proxyModel=new QSortFilterProxyModel(this);
++    proxyModel->setSourceModel(model);
++    ui->listView->setModel(proxyModel);
++    setCurrentSelectionToFirst();
++}
++
++
++
++void SearchDialog::setCurrentSelectionToFirst()
++{
++    QModelIndex index=proxyModel->index(0,0);
++    if(!index.isValid())
++        return;
++
++    ui->listView->setCurrentIndex(index);
++}
++
++void SearchDialog::enableValidateButton()
++{
++    if(ui->listView->currentIndex().isValid())
++        ui->button_valid->setEnabled(true);
++    else
++        ui->button_valid->setEnabled(false);
++}
+diff --git a/qt/Barmade/bm-gui/dialogs/searchdialog.h b/qt/Barmade/bm-gui/dialogs/searchdialog.h
+new file mode 100644
+index 0000000..29e6e0a
+--- /dev/null
++++ b/qt/Barmade/bm-gui/dialogs/searchdialog.h
+@@ -0,0 +1,39 @@
++#ifndef SEARCHDIALOG_H
++#define SEARCHDIALOG_H
++
++#include <QDialog>
++#include <QItemSelectionModel>
++#include <QSortFilterProxyModel>
++
++namespace Ui {
++class SearchDialog;
++}
++
++class SearchDialog : public QDialog
++{
++    Q_OBJECT
++
++public:
++    SearchDialog(QAbstractItemModel *model,QWidget *parent = nullptr);
++    ~SearchDialog();
++
++    void setModel(QAbstractItemModel *value);
++    QItemSelectionModel *getSelectionModel();
++
++private:
++    void initProxyModel(QAbstractItemModel *model);
++    void setCurrentSelectionToFirst();
++    void enableValidateButton();
++
++public slots:
++    void on_valid();
++    void on_cancel();
++    void on_search(const QString&);
++    //void on_buttonEnabled();
++private:
++    Ui::SearchDialog *ui;
++
++    QSortFilterProxyModel *proxyModel;
++};
++
++#endif // SEARCHDIALOG_H
+diff --git a/qt/Barmade/bm-gui/dialogs/searchdialog.ui b/qt/Barmade/bm-gui/dialogs/searchdialog.ui
+new file mode 100644
+index 0000000..9f3507a
+--- /dev/null
++++ b/qt/Barmade/bm-gui/dialogs/searchdialog.ui
+@@ -0,0 +1,55 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<ui version="4.0">
++ <class>SearchDialog</class>
++ <widget class="QDialog" name="SearchDialog">
++  <property name="windowModality">
++   <enum>Qt::WindowModal</enum>
++  </property>
++  <property name="geometry">
++   <rect>
++    <x>0</x>
++    <y>0</y>
++    <width>400</width>
++    <height>300</height>
++   </rect>
++  </property>
++  <property name="windowTitle">
++   <string>Dialog</string>
++  </property>
++  <property name="modal">
++   <bool>true</bool>
++  </property>
++  <layout class="QVBoxLayout" name="verticalLayout">
++   <item>
++    <widget class="QLineEdit" name="line_search">
++     <property name="placeholderText">
++      <string>Search</string>
++     </property>
++    </widget>
++   </item>
++   <item>
++    <widget class="QListView" name="listView"/>
++   </item>
++   <item>
++    <layout class="QHBoxLayout" name="layout_button">
++     <item>
++      <widget class="QPushButton" name="button_cancel">
++       <property name="text">
++        <string>Cancel</string>
++       </property>
++      </widget>
++     </item>
++     <item>
++      <widget class="QPushButton" name="button_valid">
++       <property name="text">
++        <string>Validate</string>
++       </property>
++      </widget>
++     </item>
++    </layout>
++   </item>
++  </layout>
++ </widget>
++ <resources/>
++ <connections/>
++</ui>
+diff --git a/qt/Barmade/bm-gui/main.cpp b/qt/Barmade/bm-gui/main.cpp
+index 6344dc3..66bf692 100644
+--- a/qt/Barmade/bm-gui/main.cpp
++++ b/qt/Barmade/bm-gui/main.cpp
+@@ -5,11 +5,12 @@ int main(int argc, char *argv[])
+ {
+     QApplication a(argc, argv);
+     MainWindow w;
+-    QSplashScreen splash(QPixmap(":/images/app_icon.png"));
+-    splash.show();
+-    splash.finish(&w);
++    //QSplashScreen splash(QPixmap(":/images/app_icon.png"));
++    //splash.show();
++   // splash.finish(&w);
+ 
+-    w.showMaximized();
++ //   w.showMaximized();
++    w.show();
+     w.showloginDialog();
+ 
+     return a.exec();
+diff --git a/qt/Barmade/bm-gui/mainwindow.cpp b/qt/Barmade/bm-gui/mainwindow.cpp
+index d191ce9..b053fa5 100644
+--- a/qt/Barmade/bm-gui/mainwindow.cpp
++++ b/qt/Barmade/bm-gui/mainwindow.cpp
+@@ -24,11 +24,13 @@ void MainWindow::init()
+     employeeModel = new EmployeeModel(this);
+     planningModel = new PlanningModel(this);
+     supplierModel = new SupplierModel(this);
+-
++    productModel  = new ProductModel(this);
+     initInformationPanel();
+     initMainPanel();
+     initEmployeePanel();
+     initSupplierPanel();
++    initProductPanel();
++    initProductManagementPanel();
+ }
+ 
+ void MainWindow::showloginDialog()
+@@ -80,12 +82,26 @@ void MainWindow::initInformationPanel()
+     connect(informationPanel,SIGNAL(logout()),this,SLOT(showloginDialog()));
+ }
+ 
++void MainWindow::initProductPanel()
++{
++    productSelected=new QItemSelectionModel(productModel,this);
++}
++
++void MainWindow::initProductManagementPanel()
++{
++    productManagementPanel=new ProductManagementPanel(jobs);
++    productManagementPanel->setProductModel(productModel);
++    productManagementPanel->setProductSelectionModel(productSelected);
++    jobs->addTab(productManagementPanel,"Product Management");
++}
++
+ void MainWindow::evaluteAccess()
+ {
+     bool isManager=!employee.getType().getName().compare("MANAGER");
+     employeePanel->activeManagementPanel(isManager);
+     supplierPanel->activeManagementPanel(isManager);
+     employeeSelected->setCurrentIndex(employeeModel->getIndexOf(employee.toVariant()),QItemSelectionModel::SelectCurrent);
++
+ }
+ 
+ //------------- PUBLIC -------------//
+diff --git a/qt/Barmade/bm-gui/mainwindow.h b/qt/Barmade/bm-gui/mainwindow.h
+index e6eee44..04c0a9f 100644
+--- a/qt/Barmade/bm-gui/mainwindow.h
++++ b/qt/Barmade/bm-gui/mainwindow.h
+@@ -7,9 +7,11 @@
+ #include "employee_panel/employee_panel.h"
+ #include "supplier_panel/supplier_panel.h"
+ #include "information_panel/information_panel.h"
++#include "ProductManagementPanel/productmanagement_panel.h"
+ #include "models/employee_model.h"
+ #include "models/planning_model.h"
+ #include "models/supplier_model.h"
++#include "models/product_model.h"
+ 
+ namespace Ui {
+ class MainWindow;
+@@ -31,6 +33,8 @@ private:
+     void initSupplierPanel();
+     void initMainPanel();
+     void initInformationPanel();
++    void initProductPanel();
++    void initProductManagementPanel();
+     void evaluteAccess();
+ 
+ public slots:
+@@ -41,18 +45,20 @@ private:
+     EmployeePanel *employeePanel;
+     SupplierPanel *supplierPanel;
+     InformationPanel *informationPanel;
++    ProductManagementPanel *productManagementPanel;
+     QTabWidget *jobs;
+ 
+     Employee employee;
+     EmployeeModel *employeeModel;
+     PlanningModel *planningModel;
+     SupplierModel *supplierModel;
++    ProductModel *productModel;
+ 
+ 
+     QItemSelectionModel *employeeSelected;
+     QItemSelectionModel *planningSelected;
+     QItemSelectionModel *supplierSelected;
+-
++    QItemSelectionModel *productSelected;
+ };
+ 
+ #endif // MAINWINDOW_H
+diff --git a/qt/Barmade/bm-gui/panel/ProductManagementPanel/productform_widget.cpp b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productform_widget.cpp
+new file mode 100644
+index 0000000..7494a47
+--- /dev/null
++++ b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productform_widget.cpp
+@@ -0,0 +1,75 @@
++#include "productform_widget.h"
++#include "ui_productform_widget.h"
++#include "ui_entitywidget.h"
++
++ProductFormWidget::ProductFormWidget(QWidget *parent) :
++    EntityWidget(parent),
++    productForm(new Ui::ProductFormWidget)
++{
++    productForm->setupUi(ui->frame_form);
++    connect(productForm->button_append,SIGNAL(clicked()),this,SLOT(on_createComposition()));
++}
++
++ProductFormWidget::~ProductFormWidget()
++{
++    delete productForm;
++}
++
++//------------- SLOTS -------------//
++
++//------------- PRIVATE -------------//
++
++//------------- PUBLIC -------------//
++
++//-------- Getter & Setter ---------//
++#include <QDebug>
++void ProductFormWidget::on_createComposition()
++{
++    SearchDialog *dialog=new SearchDialog(model,this);
++
++    if(dialog->exec())
++    {
++        ProductComposition composition;
++        //composition.setId_compose(model->data(selection->currentIndex(),AbstractListModel::Roles::IdRole).toInt());
++        composition.setId_composed(model->data(dialog->getSelectionModel()->currentIndex(),AbstractListModel::Roles::IdRole).toInt());
++        qDebug()<<dialog->getSelectionModel();
++        composition.setQty(0);
++        compositions.push_back(composition);
++    }
++    delete dialog;
++}
++
++void ProductFormWidget::on_removeComposition()
++{
++
++}
++
++void ProductFormWidget::initLineEditable()
++{
++}
++
++void ProductFormWidget::fillWidget()
++{
++    Product p;
++    p.fromVariant(model->data(selection->currentIndex(),AbstractListModel::Roles::VariantRole));
++    productForm->line_name->setText(p.getName());
++    productForm->spin_price->setValue(static_cast<double>(p.getPrice().getValue()));
++    productForm->spin_capcity->setValue(static_cast<double>(p.getCapacity().getValue()));
++    productForm->spin_alarm->setValue(p.getAlarm());
++    compositions=p.getCompositions();
++}
++
++void ProductFormWidget::fillEntity(QVariant &variant)
++{
++    Product p;
++    p.fromVariant(model->data(selection->currentIndex(),AbstractListModel::Roles::VariantRole));
++
++    p.setName(productForm->line_name->text());
++    p.setPrice(static_cast<float>(productForm->spin_price->value()));
++    p.setCapacity(static_cast<float>(productForm->spin_capcity->value()));
++    p.setAlarm(static_cast<int>(productForm->spin_capcity->value()));
++    p.setCompositions(compositions);
++    p.setPicture("null");
++
++    variant.setValue(p.toVariant());
++}
+diff --git a/qt/Barmade/bm-gui/panel/ProductManagementPanel/productform_widget.h b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productform_widget.h
+new file mode 100644
+index 0000000..fc1584c
+--- /dev/null
++++ b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productform_widget.h
+@@ -0,0 +1,42 @@
++#ifndef PRODUCTFORM_WIDGET_H
++#define PRODUCTFORM_WIDGET_H
++
++
++#include "components/entitywidget.h"
++#include "dialogs/searchdialog.h"
++#include "vector"
++
++namespace Ui {
++class ProductFormWidget;
++}
++
++class ProductFormWidget : public EntityWidget
++{
++    Q_OBJECT
++
++public:
++    explicit ProductFormWidget(QWidget *parent = nullptr);
++    ~ProductFormWidget();
++
++private:
++
++public slots:
++    void on_createComposition();
++    void on_removeComposition();
++
++
++private:
++    Ui::ProductFormWidget *productForm;
++
++    // EntityWidget interface
++protected:
++    virtual void initLineEditable();
++    virtual void fillWidget();
++    virtual void fillEntity(QVariant &variant);
++
++    std::vector<ProductComposition> compositions;
++};
++
++
++
++#endif // PRODUCTFORM_WIDGET_H
+diff --git a/qt/Barmade/bm-gui/panel/ProductManagementPanel/productform_widget.ui b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productform_widget.ui
+new file mode 100644
+index 0000000..0d62287
+--- /dev/null
++++ b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productform_widget.ui
+@@ -0,0 +1,163 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<ui version="4.0">
++ <class>ProductFormWidget</class>
++ <widget class="QWidget" name="ProductFormWidget">
++  <property name="geometry">
++   <rect>
++    <x>0</x>
++    <y>0</y>
++    <width>844</width>
++    <height>280</height>
++   </rect>
++  </property>
++  <property name="windowTitle">
++   <string>Form</string>
++  </property>
++  <layout class="QVBoxLayout" name="verticalLayout">
++   <item>
++    <layout class="QFormLayout" name="layout_form">
++     <item row="4" column="0">
++      <widget class="QLabel" name="label_price">
++       <property name="text">
++        <string>Price</string>
++       </property>
++      </widget>
++     </item>
++     <item row="5" column="0">
++      <widget class="QLabel" name="label_capacity">
++       <property name="text">
++        <string>Capacity</string>
++       </property>
++      </widget>
++     </item>
++     <item row="6" column="0">
++      <widget class="QLabel" name="label_alarm">
++       <property name="text">
++        <string>Alarm :</string>
++       </property>
++      </widget>
++     </item>
++     <item row="4" column="1">
++      <widget class="QDoubleSpinBox" name="spin_price">
++       <property name="suffix">
++        <string> $</string>
++       </property>
++       <property name="maximum">
++        <double>500.000000000000000</double>
++       </property>
++      </widget>
++     </item>
++     <item row="5" column="1">
++      <widget class="QDoubleSpinBox" name="spin_capcity">
++       <property name="suffix">
++        <string> cl</string>
++       </property>
++       <property name="decimals">
++        <number>2</number>
++       </property>
++       <property name="maximum">
++        <double>500.000000000000000</double>
++       </property>
++      </widget>
++     </item>
++     <item row="6" column="1">
++      <widget class="QSpinBox" name="spin_alarm">
++       <property name="wrapping">
++        <bool>false</bool>
++       </property>
++       <property name="frame">
++        <bool>true</bool>
++       </property>
++       <property name="buttonSymbols">
++        <enum>QAbstractSpinBox::UpDownArrows</enum>
++       </property>
++       <property name="specialValueText">
++        <string/>
++       </property>
++       <property name="accelerated">
++        <bool>true</bool>
++       </property>
++       <property name="showGroupSeparator" stdset="0">
++        <bool>false</bool>
++       </property>
++       <property name="suffix">
++        <string/>
++       </property>
++       <property name="prefix">
++        <string/>
++       </property>
++      </widget>
++     </item>
++     <item row="3" column="0">
++      <widget class="QLabel" name="label_name">
++       <property name="text">
++        <string>Name :</string>
++       </property>
++      </widget>
++     </item>
++     <item row="3" column="1">
++      <widget class="QLineEdit" name="line_name">
++       <property name="placeholderText">
++        <string>Product Name</string>
++       </property>
++      </widget>
++     </item>
++    </layout>
++   </item>
++   <item>
++    <spacer name="verticalSpacer">
++     <property name="orientation">
++      <enum>Qt::Vertical</enum>
++     </property>
++     <property name="sizeHint" stdset="0">
++      <size>
++       <width>20</width>
++       <height>40</height>
++      </size>
++     </property>
++    </spacer>
++   </item>
++   <item>
++    <layout class="QHBoxLayout" name="layout_composition">
++     <item>
++      <widget class="QTableWidget" name="table_composition">
++       <attribute name="horizontalHeaderMinimumSectionSize">
++        <number>50</number>
++       </attribute>
++       <column>
++        <property name="text">
++         <string>Name</string>
++        </property>
++       </column>
++       <column>
++        <property name="text">
++         <string>Quantity</string>
++        </property>
++       </column>
++      </widget>
++     </item>
++     <item>
++      <layout class="QVBoxLayout" name="layout_buttonComposition">
++       <item>
++        <widget class="QPushButton" name="button_append">
++         <property name="text">
++          <string>Append</string>
++         </property>
++        </widget>
++       </item>
++       <item>
++        <widget class="QPushButton" name="button_remove">
++         <property name="text">
++          <string>Remove</string>
++         </property>
++        </widget>
++       </item>
++      </layout>
++     </item>
++    </layout>
++   </item>
++  </layout>
++ </widget>
++ <resources/>
++ <connections/>
++</ui>
+diff --git a/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.cpp b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.cpp
+new file mode 100644
+index 0000000..2b70096
+--- /dev/null
++++ b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.cpp
+@@ -0,0 +1,53 @@
++#include "productmanagement_panel.h"
++#include "ui_productmanagement_panel.h"
++
++ProductManagementPanel::ProductManagementPanel(QWidget *parent) :
++    QWidget(parent),
++    ui(new Ui::ProductManagementPanel)
++{
++    ui->setupUi(this);
++    init();
++}
++
++ProductManagementPanel::~ProductManagementPanel()
++{
++    delete ui;
++}
++
++void ProductManagementPanel::init()
++{
++    model=nullptr;
++    selected=nullptr;
++    initListControl();
++    initProductForm();
++    initLayout();
++}
++void ProductManagementPanel::initLayout()
++{
++    //ui->horizontalLayout->setDirection(QHBoxLayout::RightToLeft);
++    listControl->setMaximumWidth(500);
++}
++void ProductManagementPanel::initListControl()
++{
++    listControl = new ListViewControl(this);
++    ui->horizontalLayout->addWidget(listControl);
++}
++
++void ProductManagementPanel::initProductForm()
++{
++    productForm=new ProductFormWidget(this);
++    ui->horizontalLayout->addWidget(productForm);
++}
++void ProductManagementPanel::setProductModel(ProductModel *model)
++{
++    this->model=model;
++    listControl->setModel(model);
++    productForm->setModel(model);
++
++}
++void ProductManagementPanel::setProductSelectionModel(QItemSelectionModel *selected)
++{
++    this->selected=selected;
++    listControl->setSelectionModel(selected);
++    productForm->setSelectionModel(selected);
++}
+diff --git a/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.h b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.h
+new file mode 100644
+index 0000000..cdc7d7a
+--- /dev/null
++++ b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.h
+@@ -0,0 +1,39 @@
++#ifndef PRODUCTMANAGEMENT_PANEL_H
++#define PRODUCTMANAGEMENT_PANEL_H
++
++#include "bm-lib_global.h"
++#include <QWidget>
++
++#include "models/product_model.h"
++#include "components/listviewcontrol.h"
++#include "productform_widget.h"
++
++namespace Ui {
++class ProductManagementPanel;
++}
++
++class BMLIBSHARED_EXPORT ProductManagementPanel : public QWidget
++{
++    Q_OBJECT
++public:
++    explicit ProductManagementPanel(QWidget *parent = nullptr);
++    ~ProductManagementPanel();
++
++    void setProductModel(ProductModel *model);
++    void setProductSelectionModel(QItemSelectionModel *selected);
++private:
++    void init();
++    void initLayout();
++    void initListControl();
++    void initProductForm();
++private:
++    Ui::ProductManagementPanel *ui;
++
++    ProductModel *model;
++    QItemSelectionModel *selected;
++
++    ListViewControl *listControl;
++    ProductFormWidget *productForm;
++};
++
++#endif // PRODUCTMANAGEMENT_PANEL_H
+diff --git a/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.pri b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.pri
+new file mode 100644
+index 0000000..d13390d
+--- /dev/null
++++ b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.pri
+@@ -0,0 +1,11 @@
++FORMS += \
++    $$PWD/productmanagement_panel.ui \
++    $$PWD/productform_widget.ui
++
++HEADERS += \
++    $$PWD/productmanagement_panel.h \
++    $$PWD/productform_widget.h
++
++SOURCES += \
++    $$PWD/productmanagement_panel.cpp \
++    $$PWD/productform_widget.cpp
+diff --git a/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.ui b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.ui
+new file mode 100644
+index 0000000..f7420e3
+--- /dev/null
++++ b/qt/Barmade/bm-gui/panel/ProductManagementPanel/productmanagement_panel.ui
+@@ -0,0 +1,28 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<ui version="4.0">
++ <class>ProductManagementPanel</class>
++ <widget class="QWidget" name="ProductManagementPanel">
++  <property name="geometry">
++   <rect>
++    <x>0</x>
++    <y>0</y>
++    <width>744</width>
++    <height>465</height>
++   </rect>
++  </property>
++  <property name="windowTitle">
++   <string>Form</string>
++  </property>
++  <layout class="QVBoxLayout" name="verticalLayout_2">
++   <item>
++    <layout class="QHBoxLayout" name="horizontalLayout">
++     <item>
++      <layout class="QVBoxLayout" name="verticalLayout"/>
++     </item>
++    </layout>
++   </item>
++  </layout>
++ </widget>
++ <resources/>
++ <connections/>
++</ui>
+diff --git a/qt/Barmade/bm-gui/panel/employee_panel/employee_panel.h b/qt/Barmade/bm-gui/panel/employee_panel/employee_panel.h
+index 07eccf9..8199166 100644
+--- a/qt/Barmade/bm-gui/panel/employee_panel/employee_panel.h
++++ b/qt/Barmade/bm-gui/panel/employee_panel/employee_panel.h
+@@ -32,7 +32,6 @@ public:
+     void setPlanningSelectionModel(QItemSelectionModel* selected);
+ 
+     void activeManagementPanel(bool value);
+-   // void setEmployee(Employee *value);
+ 
+ private:
+     void init();
+diff --git a/qt/Barmade/bm-gui/panel/employee_panel/employee_widget.h b/qt/Barmade/bm-gui/panel/employee_panel/employee_widget.h
+index c87da74..24ac853 100644
+--- a/qt/Barmade/bm-gui/panel/employee_panel/employee_widget.h
++++ b/qt/Barmade/bm-gui/panel/employee_panel/employee_widget.h
+@@ -3,6 +3,7 @@
+ 
+ #include "components/entitywidget.h"
+ 
++
+ namespace Ui {
+ class EmployeeWidget;
+ }
+diff --git a/qt/Barmade/bm-gui/panel/panel.pri b/qt/Barmade/bm-gui/panel/panel.pri
+index 20b1215..d7c5e8d 100644
+--- a/qt/Barmade/bm-gui/panel/panel.pri
++++ b/qt/Barmade/bm-gui/panel/panel.pri
+@@ -2,3 +2,6 @@ include(employee_panel/employee_panel.pri)
+ include(planning_panel/planning_panel.pri)
+ include(supplier_panel/supplier_panel.pri)
+ include(information_panel/information_panel.pri)
++include(ProductManagementPanel/productmanagement_panel.pri)
++
++
+diff --git a/qt/Barmade/bm-lib/entities/product.cpp b/qt/Barmade/bm-lib/entities/product.cpp
+index 7e859ac..9565963 100644
+--- a/qt/Barmade/bm-lib/entities/product.cpp
++++ b/qt/Barmade/bm-lib/entities/product.cpp
+@@ -33,6 +33,9 @@ bool Product::operator==(const Product& p)const
+        return false;
+     if(stock!=p.getStock())
+         return false;
++    for(unsigned int i=0;i<compositions.size();++i)
++        if(!(compositions.at(i)==p.compositions.at(i)))
++            return false;
+     return true;
+ }
+ Product& Product::operator=(const Product& src)
+@@ -61,21 +64,26 @@ QString Product::toString()
+ QVariant Product::toVariant() const
+ {
+     QVariantMap m;
+-    m.insert("id",id);
+-    m.insert("isDelete",isDelete);
+-    m.insert("name",name);
+-    m.insert("picture",picture);
++    QVariantList l;
++    m.insert("id",getId());
++    m.insert("isDelete",getIsDelete());
++    m.insert("name",getName());
++    m.insert("picture",getPicture());
+     m.insert("price",price.getValue());
+     m.insert("stock",getStock());
+     m.insert("capacity",capacity.getValue());
+     m.insert("remainder",remainder.getValue());
+     m.insert("alarm",getAlarm());
++    for(auto const& c:compositions)
++        l.push_back(c.toVariant());
++    m.insert("compositions",l);
+     return m;
+ }
+ 
+ void Product::fromVariant(const QVariant& variant)
+ {
+     QVariantMap m=variant.toMap();
++    QVariantList l=m.value("compositions").toList();
+     setId(m.value("id").toInt());
+     setIsDelete(m.value("isDelete").toBool());
+     setName(m.value("name").toString());
+@@ -85,6 +93,12 @@ void Product::fromVariant(const QVariant& variant)
+     setCapacity(m.value("capacity").toFloat());
+     setRemainder(m.value("remainder").toFloat());
+     setAlarm(m.value("alarm").toInt());
++    for(auto const& v :l)
++    {
++        ProductComposition c;
++        c.fromVariant(v);
++        compositions.push_back(c);
++    }
+ }
+ 
+ 
+@@ -178,4 +192,12 @@ void Product::setAlarm(int value)
+     alarm = value;
+ }
+ 
++std::vector<ProductComposition> Product::getCompositions() const
++{
++    return compositions;
++}
+ 
++void Product::setCompositions(const std::vector<ProductComposition> &value)
++{
++    compositions = value;
++}
+diff --git a/qt/Barmade/bm-lib/entities/product.h b/qt/Barmade/bm-lib/entities/product.h
+index 7b954db..3bbc57a 100644
+--- a/qt/Barmade/bm-lib/entities/product.h
++++ b/qt/Barmade/bm-lib/entities/product.h
+@@ -3,9 +3,11 @@
+ 
+ #include "bm-lib_global.h"
+ #include <QString>
++#include <vector>
+ #include "serializers/serializable.h"
+ #include "valueObjects/price.h"
+ #include "valueObjects/capacity.h"
++#include "valueObjects/productcomposition.h"
+ 
+ class BMLIBSHARED_EXPORT Product : public Serializable
+ {
+@@ -46,6 +48,9 @@ public:
+     int getAlarm() const;
+     void setAlarm(int value);
+ 
++
++    std::vector<ProductComposition> getCompositions() const;
++    void setCompositions(const std::vector<ProductComposition> &value);
+ private:
+     int id;
+     bool isDelete;
+@@ -56,7 +61,7 @@ private:
+     Capacity capacity;
+     Capacity remainder;
+     int alarm;
+-
++    std::vector<ProductComposition> compositions;
+ };
+ 
+ #endif // PRODUCT_H
+diff --git a/qt/Barmade/bm-lib/libbm-lib.so.1.0.0 b/qt/Barmade/bm-lib/libbm-lib.so.1.0.0
+index c04c752..5fd7963 100755
+Binary files a/qt/Barmade/bm-lib/libbm-lib.so.1.0.0 and b/qt/Barmade/bm-lib/libbm-lib.so.1.0.0 differ
+diff --git a/qt/Barmade/bm-lib/models/builder/builder.pri b/qt/Barmade/bm-lib/models/builder/builder.pri
+index 95ee7f2..1ed7de7 100644
+--- a/qt/Barmade/bm-lib/models/builder/builder.pri
++++ b/qt/Barmade/bm-lib/models/builder/builder.pri
+@@ -2,11 +2,13 @@ HEADERS += \
+     $$PWD/abstractbuilder.h \
+     $$PWD/entitybuilder.h \
+     $$PWD/employeebuilder.h \
+-    $$PWD/supplierbuilder.h
++    $$PWD/supplierbuilder.h \
++    $$PWD/productbuilder.h
+ 
+ 
+ SOURCES += \
+     $$PWD/abstractbuilder.cpp \
+     $$PWD/entitybuilder.cpp \
+     $$PWD/employeebuilder.cpp \
+-    $$PWD/supplierbuilder.cpp
++    $$PWD/supplierbuilder.cpp \
++    $$PWD/productbuilder.cpp
+diff --git a/qt/Barmade/bm-lib/models/builder/productbuilder.cpp b/qt/Barmade/bm-lib/models/builder/productbuilder.cpp
+new file mode 100644
+index 0000000..b29c711
+--- /dev/null
++++ b/qt/Barmade/bm-lib/models/builder/productbuilder.cpp
+@@ -0,0 +1,44 @@
++#include "productbuilder.h"
++using namespace std;
++ProductBuilder::ProductBuilder()
++{
++
++}
++ProductBuilder ProductBuilder::getInstance()
++{
++    ProductBuilder builder;
++    return builder;
++}
++
++void ProductBuilder::build(Product& p)const
++{
++    db.productDao->create(p);
++    for(ProductComposition composition:p.getCompositions())
++        db.productCompositionDao->create(composition);
++}
++
++
++void ProductBuilder::update(Product& p)const
++{
++    db.productDao->update(p);
++    for(ProductComposition composition:p.getCompositions())
++        if(composition.getIsDelete())
++            db.productCompositionDao->remove(composition);
++        else
++            db.productCompositionDao->update(composition);
++}
++
++void ProductBuilder::load(Product& p)const
++{
++    p=db.productDao->getById(p.getId());
++    p.setCompositions(db.productCompositionDao->getcomposition(p.getId()));
++
++}
++
++unique_ptr<vector<unique_ptr<Product>>> ProductBuilder::getAll() const
++{
++    unique_ptr<vector<unique_ptr<Product>>> list=db.productDao->getAll();
++    for(unsigned int i=0;i<list->size();++i)
++        load(*list->at(i));
++    return list;
++}
+diff --git a/qt/Barmade/bm-lib/models/builder/productbuilder.h b/qt/Barmade/bm-lib/models/builder/productbuilder.h
+new file mode 100644
+index 0000000..3feb054
+--- /dev/null
++++ b/qt/Barmade/bm-lib/models/builder/productbuilder.h
+@@ -0,0 +1,19 @@
++#ifndef PRODUCTBUILDER_H
++#define PRODUCTBUILDER_H
++
++#include "abstractbuilder.h"
++#include <vector>
++#include <memory>
++class ProductBuilder : public AbstractBuilder<Product>
++{
++public:
++    static ProductBuilder getInstance();
++    void build(Product& e)const;
++    void update(Product& e)const;
++    void load(Product& e)const;
++    std::unique_ptr<std::vector<std::unique_ptr<Product>>> getAll()const;
++protected:
++    ProductBuilder();
++};
++
++#endif // PRODUCTBUILDER_H
+diff --git a/qt/Barmade/bm-lib/models/product_model.cpp b/qt/Barmade/bm-lib/models/product_model.cpp
+index 90da046..ae816f2 100644
+--- a/qt/Barmade/bm-lib/models/product_model.cpp
++++ b/qt/Barmade/bm-lib/models/product_model.cpp
+@@ -3,27 +3,68 @@ using namespace std;
+ ProductModel::ProductModel(QObject * parent):
+     AbstractListModel (parent)
+ {
+-
++    initEntities();
+ }
+ 
+ void ProductModel::initEntities()
+ {
+-    unique_ptr<vector<unique_ptr<Product>>>
++    unique_ptr<vector<unique_ptr<Product>>> products=ProductBuilder::getInstance().getAll();
++    for(auto const& p:*products)
++        append(p->toVariant());
+ }
++
+ void ProductModel::makeEntity(const QModelIndex &index, const QVariant &variant)
+ {
+-
++    Product p;
++    p.fromVariant(variant);
++    ProductBuilder::getInstance().build(p);
++    setData(index,p.toVariant(),Roles::VariantRole);
+ }
+ 
+ 
+ QVariant ProductModel::data(const QModelIndex &index, int role) const
+ {
++    if(!isIndexValid(index))
++        return QVariant();
+ 
++    Product p;
++    p.fromVariant(getEntity(index));
++    switch (role)
++    {
++        case Qt::DisplayRole:
++            return p.getName() +" :"+QString::number(p.getStock());
++        case Roles::IdRole:
++            return p.getId();
++        case Roles::VariantRole:
++            return p.toVariant();
++        default:
++            return QVariant();
++    }
+ }
+ 
+ bool ProductModel::setData(const QModelIndex& index, const QVariant& value, int role)
+ {
++    if(!isIndexValid(index))
++        return false;
+ 
++    Product p;
++    p.fromVariant(getEntity(index));
++    switch (role) {
++        case Roles::VariantRole:
++            p.fromVariant(value);
++            break;
++        case Roles::DeleteRole:
++            p.setIsDelete(value.toBool());
++            break;
++        case Roles::MakeEntity:
++            makeEntity(index,value);
++            p.fromVariant(data(index,Roles::VariantRole));
++            break;
++    }
++    entities->at(static_cast<unsigned int>(index.row()))->setValue(p.toVariant());//save
++    db.getInstance().productDao->update(p);
++    emit dataChanged(index, index);
++    return true;
+ }
+ 
+ 
+diff --git a/qt/Barmade/bm-lib/models/product_model.h b/qt/Barmade/bm-lib/models/product_model.h
+index 8431a63..6095d47 100644
+--- a/qt/Barmade/bm-lib/models/product_model.h
++++ b/qt/Barmade/bm-lib/models/product_model.h
+@@ -3,7 +3,7 @@
+ 
+ #include "abstractlistmodel.h"
+ #include "entities/product.h"
+-//builder ?
++#include "builder/productbuilder.h"
+ 
+ class ProductModel : public AbstractListModel
+ {
+diff --git a/qt/Barmade/bm-lib/sql/dao/abstractdao.h b/qt/Barmade/bm-lib/sql/dao/abstractdao.h
+index 4df0cd8..de1a791 100644
+--- a/qt/Barmade/bm-lib/sql/dao/abstractdao.h
++++ b/qt/Barmade/bm-lib/sql/dao/abstractdao.h
+@@ -18,7 +18,6 @@ public:
+     virtual void update(const T&)const=0;
+     virtual void remove(const T&)const=0;
+     virtual T getById(int id)const=0;
+-    virtual std::unique_ptr<std::vector<std::unique_ptr<T>>> getAll()const=0;
+ 
+ protected:
+     virtual void init()=0;
+diff --git a/qt/Barmade/bm-lib/sql/dao/city_abstractdao.h b/qt/Barmade/bm-lib/sql/dao/city_abstractdao.h
+index cbe481f..63e0414 100644
+--- a/qt/Barmade/bm-lib/sql/dao/city_abstractdao.h
++++ b/qt/Barmade/bm-lib/sql/dao/city_abstractdao.h
+@@ -10,8 +10,6 @@ public:
+     CityAbstractDao(QSqlDatabase &db):AbstractDao(db){}
+     virtual ~CityAbstractDao();
+ 
+-protected:
+-    //virtual void init()=0;
+ };
+ 
+ 
+diff --git a/qt/Barmade/bm-lib/sql/dao/compositionproduct_abstractdao.cpp b/qt/Barmade/bm-lib/sql/dao/compositionproduct_abstractdao.cpp
+new file mode 100644
+index 0000000..e67e110
+--- /dev/null
++++ b/qt/Barmade/bm-lib/sql/dao/compositionproduct_abstractdao.cpp
+@@ -0,0 +1,6 @@
++#include "compositionproduct_abstractdao.h"
++
++CompositionProductAbstractDao::~CompositionProductAbstractDao()
++{
++
++}
+diff --git a/qt/Barmade/bm-lib/sql/dao/compositionproduct_abstractdao.h b/qt/Barmade/bm-lib/sql/dao/compositionproduct_abstractdao.h
+new file mode 100644
+index 0000000..e019d12
+--- /dev/null
++++ b/qt/Barmade/bm-lib/sql/dao/compositionproduct_abstractdao.h
+@@ -0,0 +1,18 @@
++#ifndef COMPOSITIONPRODUCT_ABSTRACTDAO_H
++#define COMPOSITIONPRODUCT_ABSTRACTDAO_H
++
++#include "abstractdao.h"
++#include "QVariant"
++#include "valueObjects/productcomposition.h"
++
++class CompositionProductAbstractDao : public AbstractDao<ProductComposition>
++{
++public:
++    CompositionProductAbstractDao(QSqlDatabase &db):AbstractDao(db){}
++    virtual ~CompositionProductAbstractDao();
++
++    virtual ProductComposition getByBothId(int compose,int composed)const=0;
++    virtual std::vector<ProductComposition> getcomposition(int composed)const=0;
++};
++
++#endif // COMPOSITIONPRODUCT_ABSTRACTDAO_H
+diff --git a/qt/Barmade/bm-lib/sql/dao/employee_abstractdao.h b/qt/Barmade/bm-lib/sql/dao/employee_abstractdao.h
+index cac1400..82ba504 100644
+--- a/qt/Barmade/bm-lib/sql/dao/employee_abstractdao.h
++++ b/qt/Barmade/bm-lib/sql/dao/employee_abstractdao.h
+@@ -12,6 +12,8 @@ public:
+     virtual ~EmployeeAbstractDao();
+ 
+     virtual Employee getEmployeeByCode(const QString& code)const=0 ;
++    virtual std::unique_ptr<std::vector<std::unique_ptr<Employee>>> getAll()const=0;
++
+ };
+ 
+ #endif // EMPLOYEE_ABSTRACTDAO_H
+diff --git a/qt/Barmade/bm-lib/sql/dao/planning_abstractdao.h b/qt/Barmade/bm-lib/sql/dao/planning_abstractdao.h
+index b117739..59c171d 100644
+--- a/qt/Barmade/bm-lib/sql/dao/planning_abstractdao.h
++++ b/qt/Barmade/bm-lib/sql/dao/planning_abstractdao.h
+@@ -9,7 +9,7 @@ class PlanningAbstractDao: public AbstractDao<Planning>
+ public:
+     PlanningAbstractDao(QSqlDatabase &db):AbstractDao(db){}
+     virtual ~PlanningAbstractDao();
+-
++    virtual std::unique_ptr<std::vector<std::unique_ptr<Planning>>> getAll() const=0;
+     virtual std::unique_ptr<std::vector<std::unique_ptr<Planning>>> getPlanningByEmployee(int idUser) const=0;
+ };
+ 
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/city_dao.cpp b/qt/Barmade/bm-lib/sql/dao/postgres/city_dao.cpp
+index 4201edf..4cedf28 100644
+--- a/qt/Barmade/bm-lib/sql/dao/postgres/city_dao.cpp
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/city_dao.cpp
+@@ -48,10 +48,6 @@ City CityDao::getById(int id)const
+     return c;
+ }
+ 
+-std::unique_ptr<std::vector<std::unique_ptr<City>>> CityDao::getAll()const
+-{
+-    return nullptr;
+-}
+ 
+ void CityDao::init()
+ {
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/city_dao.h b/qt/Barmade/bm-lib/sql/dao/postgres/city_dao.h
+index 2657f73..0cb48f6 100644
+--- a/qt/Barmade/bm-lib/sql/dao/postgres/city_dao.h
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/city_dao.h
+@@ -15,7 +15,6 @@ public:
+     void update(const City &)const;
+     void remove(const City &)const;
+     City getById(int id)const;
+-    std::unique_ptr<std::vector<std::unique_ptr<City>>> getAll()const;
+ 
+ protected:
+     void init();
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/compositionproduct_dao.cpp b/qt/Barmade/bm-lib/sql/dao/postgres/compositionproduct_dao.cpp
+new file mode 100644
+index 0000000..94e65fb
+--- /dev/null
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/compositionproduct_dao.cpp
+@@ -0,0 +1,74 @@
++#include "compositionproduct_dao.h"
++
++using namespace std;
++CompositionProductDao::CompositionProductDao(QSqlDatabase &db):
++    CompositionProductAbstractDao(db)
++{
++
++}
++CompositionProductDao::~CompositionProductDao()
++{
++}
++
++void CompositionProductDao::create(ProductComposition &c)const
++{
++    QSqlQuery q(db);
++    q.prepare("SELECT f_create_composition(:compose,:composed,:qty)");
++    q.bindValue(":compose",c.getId_compose());
++    q.bindValue(":composed",c.getId_composed());
++    q.bindValue(":qty",c.getQty());
++    q.exec();
++}
++void CompositionProductDao::update(const ProductComposition &c)const
++{
++    QSqlQuery q(db);
++    q.prepare("SELECT f_update_composition(:compose,:composed,:qty)");
++    q.bindValue(":compose",c.getId_compose());
++    q.bindValue(":composed",c.getId_composed());
++    q.bindValue(":qty",c.getQty());
++    q.exec();
++}
++
++void CompositionProductDao::remove(const ProductComposition &c)const
++{
++    QSqlQuery q(db);
++    q.prepare("SELECT f_delete_composition(:compose,:composed)");
++    q.bindValue(":compose",c.getId_compose());
++    q.bindValue(":composed",c.getId_composed());
++    q.exec();
++}
++
++ProductComposition CompositionProductDao::getByBothId(int compose,int composed)const
++{
++    Q_UNUSED(compose);
++    Q_UNUSED(composed);
++    return ProductComposition();
++}
++
++vector<ProductComposition> CompositionProductDao::getcomposition(int composed)const
++{
++    QSqlQuery q(db);
++    vector<ProductComposition> list;
++    q.prepare("SELECT * FROM f_get_composition_of(:composed)");
++    q.bindValue(":composed",composed);
++    q.exec();
++    while(q.next())
++    {
++        ProductComposition p;
++        p.setId_compose(q.value("id_compose").toInt());
++        p.setId_composed(q.value("id_composed").toInt());
++        p.setQty(q.value("quantity_used").toFloat());
++        list.push_back(p);
++    }
++    return list;
++}
++
++void CompositionProductDao::init()
++{
++
++}
++ProductComposition CompositionProductDao::getById(int id)const
++{
++    Q_UNUSED(id);
++    return ProductComposition();
++}
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/compositionproduct_dao.h b/qt/Barmade/bm-lib/sql/dao/postgres/compositionproduct_dao.h
+new file mode 100644
+index 0000000..7bab69a
+--- /dev/null
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/compositionproduct_dao.h
+@@ -0,0 +1,20 @@
++#ifndef COMPOSITIONPRODUCT_DAO_H
++#define COMPOSITIONPRODUCT_DAO_H
++
++#include "../compositionproduct_abstractdao.h"
++class CompositionProductDao : public CompositionProductAbstractDao
++{
++public:
++    CompositionProductDao(QSqlDatabase &db);
++    virtual ~ CompositionProductDao();
++    virtual void create(ProductComposition &)const;
++    virtual void update(const ProductComposition &)const;
++    virtual void remove(const ProductComposition &)const;
++    ProductComposition getById(int id)const;
++    virtual ProductComposition getByBothId(int compose,int composed)const;
++    virtual std::vector<ProductComposition> getcomposition(int composed)const;
++protected:
++    void init();
++};
++
++#endif // COMPOSITIONPRODUCT_DAO_H
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/entity_dao.cpp b/qt/Barmade/bm-lib/sql/dao/postgres/entity_dao.cpp
+index 12ee6fe..29afc80 100644
+--- a/qt/Barmade/bm-lib/sql/dao/postgres/entity_dao.cpp
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/entity_dao.cpp
+@@ -66,10 +66,6 @@ Entity EntityDao::getById(int id) const
+     return e;
+ }
+ 
+-std::unique_ptr<std::vector<std::unique_ptr<Entity>>> EntityDao::getAll() const
+-{
+-    return  nullptr;
+-}
+ 
+ void EntityDao::init()
+ {
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/entity_dao.h b/qt/Barmade/bm-lib/sql/dao/postgres/entity_dao.h
+index fb17d33..1e4deb0 100644
+--- a/qt/Barmade/bm-lib/sql/dao/postgres/entity_dao.h
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/entity_dao.h
+@@ -14,8 +14,6 @@ public:
+     virtual void update(const Entity &) const;
+     virtual void remove(const Entity &) const;
+     virtual Entity getById(int id) const;
+-    virtual std::unique_ptr<std::vector<std::unique_ptr<Entity>>> getAll() const;
+-
+ protected:
+     virtual void init();
+ };
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/street_dao.cpp b/qt/Barmade/bm-lib/sql/dao/postgres/street_dao.cpp
+index 7e077c4..0a8fd61 100644
+--- a/qt/Barmade/bm-lib/sql/dao/postgres/street_dao.cpp
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/street_dao.cpp
+@@ -48,10 +48,6 @@ Street StreetDao::getById(int id) const
+     }
+     return s;
+ }
+-std::unique_ptr<std::vector<std::unique_ptr<Street>>> StreetDao::getAll() const
+-{
+-    return nullptr;
+-}
+ 
+ Street StreetDao::getStreet_by_idEntity(int id_entity)
+ {
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/street_dao.h b/qt/Barmade/bm-lib/sql/dao/postgres/street_dao.h
+index 4f7cf5f..4f1ae15 100644
+--- a/qt/Barmade/bm-lib/sql/dao/postgres/street_dao.h
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/street_dao.h
+@@ -14,7 +14,6 @@ public:
+     void update(const Street &)const;
+     void remove(const Street &)const;
+     Street getById(int id)const;
+-    std::unique_ptr<std::vector<std::unique_ptr<Street>>> getAll() const;
+     // StreetAbstractDao interface
+     virtual Street getStreet_by_idEntity(int id_entity);
+ 
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/typeemploye_dao.cpp b/qt/Barmade/bm-lib/sql/dao/postgres/typeemploye_dao.cpp
+index ffe4d65..c629759 100644
+--- a/qt/Barmade/bm-lib/sql/dao/postgres/typeemploye_dao.cpp
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/typeemploye_dao.cpp
+@@ -43,10 +43,6 @@ TypeEmployee TypeEmployeDao::getById(int id) const
+     return t;
+ }
+ 
+-std::unique_ptr<std::vector<std::unique_ptr<TypeEmployee>>> TypeEmployeDao::getAll() const
+-{
+-    return nullptr;
+-}
+ 
+ //protected
+ void TypeEmployeDao::init()
+diff --git a/qt/Barmade/bm-lib/sql/dao/postgres/typeemploye_dao.h b/qt/Barmade/bm-lib/sql/dao/postgres/typeemploye_dao.h
+index 01d5e73..a82fbbb 100644
+--- a/qt/Barmade/bm-lib/sql/dao/postgres/typeemploye_dao.h
++++ b/qt/Barmade/bm-lib/sql/dao/postgres/typeemploye_dao.h
+@@ -11,8 +11,6 @@ public:
+     virtual void update(const TypeEmployee &) const;
+     virtual void remove(const TypeEmployee &) const;
+     virtual TypeEmployee getById(int id) const;
+-    virtual std::unique_ptr<std::vector<std::unique_ptr<TypeEmployee>>> getAll() const;
+-
+ protected:
+     virtual void init();
+ };
+diff --git a/qt/Barmade/bm-lib/sql/dao/product_abstractdo.h b/qt/Barmade/bm-lib/sql/dao/product_abstractdo.h
+index d5cc588..9c1d39e 100644
+--- a/qt/Barmade/bm-lib/sql/dao/product_abstractdo.h
++++ b/qt/Barmade/bm-lib/sql/dao/product_abstractdo.h
+@@ -8,6 +8,7 @@ class ProductAbstractDo : public AbstractDao<Product>
+ public:
+     ProductAbstractDo(QSqlDatabase &db):AbstractDao(db){}
+     virtual ~ProductAbstractDo();
++    virtual std::unique_ptr<std::vector<std::unique_ptr<Product>>> getAll() const=0;
+ };
+ 
+ #endif // PRODUCT_ABSTRACTDO_H
+diff --git a/qt/Barmade/bm-lib/sql/dao/supplier_abstractdao.h b/qt/Barmade/bm-lib/sql/dao/supplier_abstractdao.h
+index 5bd9e41..bfe0913 100644
+--- a/qt/Barmade/bm-lib/sql/dao/supplier_abstractdao.h
++++ b/qt/Barmade/bm-lib/sql/dao/supplier_abstractdao.h
+@@ -10,6 +10,7 @@ class SupplierAbstractDao : public AbstractDao<Supplier>
+ public:
+     SupplierAbstractDao(QSqlDatabase &db):AbstractDao(db){}
+     virtual ~SupplierAbstractDao();
++    virtual std::unique_ptr<std::vector<std::unique_ptr<Supplier>>> getAll() const=0;
+ };
+ 
+ #endif // SUPPLIER_ABSTRACTDAO_H
+diff --git a/qt/Barmade/bm-lib/sql/database_manager.cpp b/qt/Barmade/bm-lib/sql/database_manager.cpp
+index fba2757..6caa625 100644
+--- a/qt/Barmade/bm-lib/sql/database_manager.cpp
++++ b/qt/Barmade/bm-lib/sql/database_manager.cpp
+@@ -15,6 +15,7 @@ DatabaseManager::~DatabaseManager()
+     delete planningDao;
+     delete supplierDao;
+     delete productDao;
++    delete productCompositionDao;
+ }
+ //------------- PROTECTED -------------//
+ DatabaseManager::DatabaseManager():
+@@ -28,7 +29,7 @@ DatabaseManager::DatabaseManager():
+     planningDao=new PlanningDao(*db);
+     supplierDao=new SupplierDao(*db);
+     productDao=new ProductDao(*db);
+-
++    productCompositionDao = new CompositionProductDao(*db);
+     //db=new QSqlDatabase(QSqlDatabase::addDatabase(type));
+     db->setDatabaseName("barmade");
+     db->setHostName("172.17.0.1");
+diff --git a/qt/Barmade/bm-lib/sql/database_manager.h b/qt/Barmade/bm-lib/sql/database_manager.h
+index 9fe3d04..2675c78 100644
+--- a/qt/Barmade/bm-lib/sql/database_manager.h
++++ b/qt/Barmade/bm-lib/sql/database_manager.h
+@@ -13,6 +13,7 @@
+ #include "dao/postgres/planning_dao.h"
+ #include "dao/postgres/supplier_dao.h"
+ #include "dao/postgres/product_dao.h"
++#include "dao/postgres/compositionproduct_dao.h"
+ 
+ class BMLIBSHARED_EXPORT DatabaseManager
+ {
+@@ -39,7 +40,7 @@ public:
+     const PlanningAbstractDao *planningDao;
+     const SupplierAbstractDao *supplierDao;
+     const ProductAbstractDo *productDao;
+-
++    const CompositionProductAbstractDao *productCompositionDao;
+ protected:
+     DatabaseManager();
+     DatabaseManager& operator=(DatabaseManager const& src);
+diff --git a/qt/Barmade/bm-lib/sql/sql.pri b/qt/Barmade/bm-lib/sql/sql.pri
+index c6e4517..13c803e 100644
+--- a/qt/Barmade/bm-lib/sql/sql.pri
++++ b/qt/Barmade/bm-lib/sql/sql.pri
+@@ -18,7 +18,9 @@ SOURCES += \
+     $$PWD/dao/postgres/planning_dao.cpp \
+     $$PWD/dao/postgres/supplier_dao.cpp \
+     $$PWD/dao/product_abstractdo.cpp \
+-    $$PWD/dao/postgres/product_dao.cpp
++    $$PWD/dao/postgres/product_dao.cpp \
++    $$PWD/dao/compositionproduct_abstractdao.cpp \
++    $$PWD/dao/postgres/compositionproduct_dao.cpp
+ 
+ HEADERS += \
+     sql/database_manager.h \
+@@ -39,5 +41,7 @@ HEADERS += \
+     $$PWD/dao/postgres/planning_dao.h \
+     $$PWD/dao/postgres/supplier_dao.h \
+     $$PWD/dao/product_abstractdo.h \
+-    $$PWD/dao/postgres/product_dao.h
++    $$PWD/dao/postgres/product_dao.h \
++    $$PWD/dao/compositionproduct_abstractdao.h \
++    $$PWD/dao/postgres/compositionproduct_dao.h
+ 
+diff --git a/qt/Barmade/bm-lib/valueObjects/productcomposition.cpp b/qt/Barmade/bm-lib/valueObjects/productcomposition.cpp
+new file mode 100644
+index 0000000..b2571c3
+--- /dev/null
++++ b/qt/Barmade/bm-lib/valueObjects/productcomposition.cpp
+@@ -0,0 +1,89 @@
++#include "productcomposition.h"
++
++ProductComposition::ProductComposition()
++{
++    id_compose=0;
++    id_composed=0;
++    qty=0;
++    isDelete=false;
++}
++
++ProductComposition::ProductComposition(int compose, int composed, float qty)
++{
++    setId_compose(compose);
++    setId_composed(composed);
++    setQty(qty);
++    setIsDelete(false);
++}
++
++bool ProductComposition::operator==(const ProductComposition &src)const
++{
++    if(id_compose!=src.getId_compose())
++        return false;
++    if(id_composed!=src.getId_composed())
++        return false;
++    if(qty!=src.getQty())
++        return false;
++    if(isDelete != src.getIsDelete())
++        return  false;
++    return true;
++}
++
++QVariant ProductComposition::toVariant() const
++{
++    QVariantMap m;
++    m.insert("id_compose",getId_compose());
++    m.insert("id_composed",getId_composed());
++    m.insert("qty",getQty());
++    m.insert("isDelete",getIsDelete());
++    return m;
++}
++
++void ProductComposition::fromVariant(const QVariant &variant)
++{
++    QVariantMap m =variant.toMap();
++    setId_compose(m.value("id_compose").toInt());
++    setId_composed(m.value("id_composed").toInt());
++    setQty(m.value("qty").toFloat());
++    setIsDelete(m.value("isDelete").toBool());
++}
++
++int ProductComposition::getId_composed() const
++{
++    return id_composed;
++}
++
++void ProductComposition::setId_composed(int value)
++{
++    id_composed = value;
++}
++
++int ProductComposition::getId_compose() const
++{
++    return id_compose;
++}
++
++void ProductComposition::setId_compose(int value)
++{
++    id_compose = value;
++}
++
++float ProductComposition::getQty() const
++{
++    return qty;
++}
++
++void ProductComposition::setQty(float value)
++{
++    qty = value;
++}
++
++bool ProductComposition::getIsDelete() const
++{
++    return isDelete;
++}
++
++void ProductComposition::setIsDelete(bool value)
++{
++    isDelete = value;
++}
+diff --git a/qt/Barmade/bm-lib/valueObjects/productcomposition.h b/qt/Barmade/bm-lib/valueObjects/productcomposition.h
+new file mode 100644
+index 0000000..2b3bd09
+--- /dev/null
++++ b/qt/Barmade/bm-lib/valueObjects/productcomposition.h
+@@ -0,0 +1,37 @@
++#ifndef PRODUCTCOMPOSITION_H
++#define PRODUCTCOMPOSITION_H
++
++#include "serializers/serializable.h"
++
++class ProductComposition : public Serializable
++{
++public:
++    ProductComposition();
++    ProductComposition(int compose,int composed,float qty);
++
++    virtual QVariant toVariant() const;
++    virtual void fromVariant(const QVariant &variant);
++    bool operator==(const ProductComposition& src)const ;
++    int getId_composed() const;
++    void setId_composed(int value);
++
++    int getId_compose() const;
++    void setId_compose(int value);
++
++    float getQty() const;
++    void setQty(float value);
++
++    bool getIsDelete() const;
++    void setIsDelete(bool value);
++
++private:
++    int id_composed;
++    int id_compose;
++    float qty;
++    bool isDelete;
++
++    // Serializable interface
++public:
++};
++
++#endif // PRODUCTCOMPOSITION_H
+diff --git a/qt/Barmade/bm-lib/valueObjects/valueObject.pri b/qt/Barmade/bm-lib/valueObjects/valueObject.pri
+index 0bca98f..d9e249b 100644
+--- a/qt/Barmade/bm-lib/valueObjects/valueObject.pri
++++ b/qt/Barmade/bm-lib/valueObjects/valueObject.pri
+@@ -1,7 +1,9 @@
+ HEADERS += \
+     $$PWD/price.h \
+-    $$PWD/capacity.h
++    $$PWD/capacity.h \
++    $$PWD/productcomposition.h
+ 
+ SOURCES += \
+     $$PWD/price.cpp \
+-    $$PWD/capacity.cpp
++    $$PWD/capacity.cpp \
++    $$PWD/productcomposition.cpp
+diff --git a/qt/Barmade/bm-usecases/CompositionProductBuilder/.gitignore b/qt/Barmade/bm-usecases/CompositionProductBuilder/.gitignore
+new file mode 100644
+index 0000000..fab7372
+--- /dev/null
++++ b/qt/Barmade/bm-usecases/CompositionProductBuilder/.gitignore
+@@ -0,0 +1,73 @@
++# This file is used to ignore files which are generated
++# ----------------------------------------------------------------------------
++
++*~
++*.autosave
++*.a
++*.core
++*.moc
++*.o
++*.obj
++*.orig
++*.rej
++*.so
++*.so.*
++*_pch.h.cpp
++*_resource.rc
++*.qm
++.#*
++*.*#
++core
++!core/
++tags
++.DS_Store
++.directory
++*.debug
++Makefile*
++*.prl
++*.app
++moc_*.cpp
++ui_*.h
++qrc_*.cpp
++Thumbs.db
++*.res
++*.rc
++/.qmake.cache
++/.qmake.stash
++
++# qtcreator generated files
++*.pro.user*
++
++# xemacs temporary files
++*.flc
++
++# Vim temporary files
++.*.swp
++
++# Visual Studio generated files
++*.ib_pdb_index
++*.idb
++*.ilk
++*.pdb
++*.sln
++*.suo
++*.vcproj
++*vcproj.*.*.user
++*.ncb
++*.sdf
++*.opensdf
++*.vcxproj
++*vcxproj.*
++
++# MinGW generated files
++*.Debug
++*.Release
++
++# Python byte code
++*.pyc
++
++# Binaries
++# --------
++*.dll
++*.exe
++
+diff --git a/qt/Barmade/bm-usecases/CompositionProductBuilder/CompositionProductBuilder b/qt/Barmade/bm-usecases/CompositionProductBuilder/CompositionProductBuilder
+new file mode 100755
+index 0000000..fec8de1
+Binary files /dev/null and b/qt/Barmade/bm-usecases/CompositionProductBuilder/CompositionProductBuilder differ
+diff --git a/qt/Barmade/bm-usecases/CompositionProductBuilder/CompositionProductBuilder.pro b/qt/Barmade/bm-usecases/CompositionProductBuilder/CompositionProductBuilder.pro
+new file mode 100644
+index 0000000..1ed920b
+--- /dev/null
++++ b/qt/Barmade/bm-usecases/CompositionProductBuilder/CompositionProductBuilder.pro
+@@ -0,0 +1,16 @@
++QT += testlib sql
++QT -= gui
++
++CONFIG += qt console warn_on depend_includepath testcase
++CONFIG -= app_bundle
++
++TEMPLATE = app
++
++SOURCES +=  tst_compositionproductbuilder.cpp
++
++#########################################
++#           ADD library
++#########################################
++LIBS += -L$$OUT_PWD/../../bm-lib -lbm-lib
++INCLUDEPATH += $$PWD/../../bm-lib/
++DEPENDPATH += $$PWD/../../bm-lib/
+diff --git a/qt/Barmade/bm-usecases/CompositionProductBuilder/tst_compositionproductbuilder.cpp b/qt/Barmade/bm-usecases/CompositionProductBuilder/tst_compositionproductbuilder.cpp
+new file mode 100644
+index 0000000..a5c1f4d
+--- /dev/null
++++ b/qt/Barmade/bm-usecases/CompositionProductBuilder/tst_compositionproductbuilder.cpp
+@@ -0,0 +1,124 @@
++#include <QtTest>
++#include <QCoreApplication>
++
++#include "models/builder/productbuilder.h"
++#include "sql/database_manager.h"
++
++using namespace std;
++class CompositionProductBuilder : public QObject
++{
++    Q_OBJECT
++
++public:
++    CompositionProductBuilder();
++    ~CompositionProductBuilder();
++
++private slots:
++    void test_build_product();
++    void test_load_product();
++    void test_build_composed_product();
++    void test_update_composed_product();
++
++};
++
++CompositionProductBuilder::CompositionProductBuilder()
++{
++
++}
++
++CompositionProductBuilder::~CompositionProductBuilder()
++{
++
++}
++
++
++void CompositionProductBuilder::test_build_product()
++{
++    Product p;
++    p.setName("coca");
++    p.setPicture(" ");
++    p.setPrice(2);
++    p.setStock(55);
++    p.setAlarm(12);
++    p.setRemainder(33);
++    p.setCapacity(33);
++    ProductBuilder::getInstance().build(p);
++
++}
++
++void CompositionProductBuilder::test_load_product()
++{
++    Product p=DatabaseManager::getInstance().productDao->getById(3);
++    Product s;
++    s.setId(p.getId());
++    ProductBuilder::getInstance().load(s);
++    QVERIFY(s==p);
++}
++
++void CompositionProductBuilder::test_build_composed_product()
++{
++    Product p;
++    p.setName("coca");
++    p.setPicture(" ");
++    p.setPrice(2);
++    p.setStock(55);
++    p.setAlarm(12);
++    p.setRemainder(33);
++    p.setCapacity(33);
++    ProductBuilder::getInstance().build(p);
++
++    Product a;
++    a.setName("rhum");
++    a.setPicture(" ");
++    a.setPrice(7);
++    a.setStock(3);
++    a.setAlarm(12);
++    a.setRemainder(33);
++    a.setCapacity(33);
++    ProductBuilder::getInstance().build(a);
++
++    Product final;
++    final.setName("rhum coca");
++    final.setPicture("");
++    final.setPrice(p.getPrice().getValue()+a.getPrice().getValue());
++    final.setStock(3);//functionCalcul stock
++    final.setAlarm(12);
++    final.setRemainder(33);//calcul rest
++    final.setCapacity(33);
++    ProductComposition c1(p.getId(),final.getId(),33);
++    ProductComposition c2(a.getId(),final.getId(),5);
++    ProductBuilder::getInstance().build(final);
++    DatabaseManager::getInstance().productCompositionDao->create(c1);
++    DatabaseManager::getInstance().productCompositionDao->create(c2);
++    ProductBuilder::getInstance().load(final);
++    QVERIFY(final.getCompositions().size()>0);
++}
++
++void CompositionProductBuilder::test_update_composed_product()
++{
++    Product p=DatabaseManager::getInstance().productDao->getById(10);
++    Product cpy;
++
++    ProductBuilder::getInstance().load(p);
++    vector<ProductComposition> c=p.getCompositions();
++
++    c.at(0).setIsDelete(true);
++    p.setCompositions(c);
++
++    ProductBuilder::getInstance().update(p);
++
++    cpy.setId(p.getId());
++    ProductBuilder::getInstance().load(cpy);
++    QVERIFY(cpy==p);
++
++    if(cpy==p)
++    {
++        c.at(0).setIsDelete(false);
++        p.setCompositions(c);
++        ProductBuilder::getInstance().update(p);
++        ProductBuilder::getInstance().load(p);
++    }
++}
++QTEST_MAIN(CompositionProductBuilder)
++
++#include "tst_compositionproductbuilder.moc"
+diff --git a/qt/Barmade/bm-usecases/DaoProduct/DaoProduct b/qt/Barmade/bm-usecases/DaoProduct/DaoProduct
+index 7dd29c8..53cc0b8 100755
+Binary files a/qt/Barmade/bm-usecases/DaoProduct/DaoProduct and b/qt/Barmade/bm-usecases/DaoProduct/DaoProduct differ
+diff --git a/qt/Barmade/bm-usecases/bm-usecases.pro b/qt/Barmade/bm-usecases/bm-usecases.pro
+index f2abb40..39a129a 100644
+--- a/qt/Barmade/bm-usecases/bm-usecases.pro
++++ b/qt/Barmade/bm-usecases/bm-usecases.pro
+@@ -1,5 +1,6 @@
+ TEMPLATE = subdirs
+ 
+ SUBDIRS += \
+-    DaoProduct
++    DaoProduct \
++    CompositionProductBuilder
+ 

@@ -1,0 +1,52 @@
+QFrame#frame_form
+{
+    border:none;
+    border-top:5px solid rgb(33, 160, 160);
+
+    background-color:white;
+
+}
+QFrame#frame_form[on_edit=false] QLineEdit, QDateEdit
+{
+    color:black;
+    border-bottom:1px solid rgb(33, 160, 160);
+}
+QFrame#frame_form[on_edit=false] QC1omboBox,
+QFrame#frame_form[on_edit=false] QLineEdit,
+QFrame#frame_form[on_edit=false] QDoubleSpinBox,
+QFrame#frame_form[on_edit=false] QDateEdit,
+QFrame#frame_form[on_edit=false] QSpinBox
+{
+    border:none;
+    background-color:none;
+    color:black;
+    border-bottom:1px solid rgb(33, 160, 160);
+}
+
+QFrame#frame_form[on_edit=true] QComboBox,
+QFrame#frame_form[on_edit=true] QLineEdit,
+QFrame#frame_form[on_edit=true] QDoubleSpinBox,
+QFrame#frame_form[on_edit=true] QDateEdit,
+QFrame#frame_form[on_edit=true] QSpinBox
+{
+    background-color:#e9e9ec;
+    border-radius:5px;
+    border-top: 3px solid #e3e3e6;
+    border-bottom:none;
+    color:black;
+}
+
+QPushButton
+{
+
+    font: 18pt 'Open Sans';
+}
+QPushButton:hover
+{
+    background-color: rgba(33, 160, 160,200);
+}
+
+QPushButton:pressed
+{
+    background-color: rgb(4, 95, 92);
+}

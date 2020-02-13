@@ -1,0 +1,41 @@
+QDialog
+{
+
+}
+
+QPushButton
+{
+    font-size:25pt;
+}
+
+QLabel#label_title
+{
+    padding-top: 10px;
+    padding-bottom:5px;
+    padding-left:22px;
+}
+QLabel#label_id{
+    margin-bottom:5px;
+
+    border: 1px solid rgba(0, 0, 0,120);
+    border-right:none;
+
+    color:rgba(0,0,0,100);
+    background-color: white;
+}
+QLabel#label_error
+{
+    color: rgb(229, 61, 0);
+    padding:0px;
+    margin:0px;
+}
+QLineEdit#lineEdit_id
+{
+    margin-bottom:5px;
+
+    border: none;
+    border: 1px solid rgba(0, 0, 0,150);
+    border-left:none;
+
+    background-color: white;
+}

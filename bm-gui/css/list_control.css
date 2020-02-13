@@ -1,0 +1,55 @@
+QFrame
+{
+    border-top-left-radius:10px;
+    border-top-right-radius:10px;
+}
+
+QFrame:!enabled{
+    background-color:#e3e3e3;
+}
+
+
+
+QListView
+{
+    background-color:white;
+    padding-top: 5px;
+
+    font: 12pt 'Open Sans';
+    selection-color : black;
+    color:black;
+}
+QListView::item
+{
+    padding: 10px;
+    border-bottom:2px solid #ecf0f1;
+}
+QListView::item:selected
+{
+    background-color:#ecf0f1;
+}
+QListView::item:hover
+{
+    background-color:#ecf0f1;
+    border-bottom:1px solid white;
+}
+
+QPushButton
+{
+    padding: 15px;
+    border:none;
+    font: 14pt 'Open Sans' ;
+    font-weight:bold;
+    color:rgb(252, 255, 247);
+    background-color: rgb(33, 160, 160);
+}
+
+QPushButton:hover
+{
+    background-color: rgba(33, 160, 160,200);
+}
+
+QPushButton:pressed
+{
+    background-color: rgb(4, 95, 92);
+}
